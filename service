@@ -1,0 +1,12 @@
+#!/bin/bash
+case "$2" in
+  start) 
+    /etc/rc.d/init.d/isc-dhcpd.service start
+    ;;
+  stop)
+    /etc/rc.d/init.d/isc-dhcpd.service stop
+    ;;
+  *)      
+    printf "Invalid command - Valid->start|stop|\n"
+    ;;
+esac

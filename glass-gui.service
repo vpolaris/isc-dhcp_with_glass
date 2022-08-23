@@ -1,0 +1,36 @@
+#!/bin/bash
+function start() {
+  exec npm start --prefix /opt/glass-isc-dhcp/
+}
+
+function stop() {
+  /bin/pkill npm
+}
+
+function restart() {
+  stop
+  start
+}
+
+
+function_exists() {
+  declare -f -F $1 > /dev/null
+  return $?
+}
+
+if [ $# -lt 1 ]
+then
+  printf "Usage : $0 start|stop|restart\n"
+  exit
+fi
+
+case "$1" in
+  start)    function_exists start && start
+          ;;
+  stop)  function_exists stop && stop
+          ;;
+  restart)  function_exists restart && restart
+          ;;  
+  *)      printf "Invalid command - Valid->start|stop|restart\n"
+          ;;
+esac
