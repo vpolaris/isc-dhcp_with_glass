@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+#fake service to permit glass to restart the dhcp server
 case "$2" in
   start) 
     /etc/rc.d/init.d/isc-dhcpd.service start
@@ -6,7 +7,11 @@ case "$2" in
   stop)
     /etc/rc.d/init.d/isc-dhcpd.service stop
     ;;
+  restart)
+    /etc/rc.d/init.d/isc-dhcpd.service stop
+    /etc/rc.d/init.d/isc-dhcpd.service start
+    ;;
   *)      
-    printf "Invalid command - Valid->start|stop|\n"
+    printf "Invalid command - Valid->start|stop|restart\n"
     ;;
 esac

@@ -1,3 +1,4 @@
+ARG ARCH
 FROM vpolaris/rsyslog:8.2204.0-2.fc36 as rsyslog
 FROM vpolaris/isc-dhcpd:4.4.3-2.fc36 as isc-dhcp
 FROM fedora:36 as builder
@@ -24,9 +25,15 @@ RUN ARCH="$(uname -m)" \
 
 RUN dnf -y install git 
 
+FROM builder as builder-arm64
+ARG ARCH=arm64
+FROM builder as builder-amd64
+ARG ARCH=x64
+
+FROM builder-${TARGETARCH} as glass
 #install nodejs
 ARG NODE_VERSION=16.16.0
-ARG NODE_PACKAGE=node-v$NODE_VERSION-linux-x64
+ARG NODE_PACKAGE=node-v$NODE_VERSION-linux-${ARCH}
 ARG NODE_HOME=${sysroot}/opt/$NODE_PACKAGE
 
 ENV NODE_PATH $NODE_HOME/lib/node_modules
@@ -88,7 +95,7 @@ RUN dnf -y --installroot=${sysroot} ${DNFOPTION} --releasever ${DISTVERSION}  au
 
 FROM scratch 
 ARG sysroot=/mnt/sysroot
-COPY --from=builder ${sysroot} /
+COPY --from=glass "${sysroot}" /
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
@@ -101,7 +108,7 @@ ENV TZ UTC
 ENV LANG C.UTF-8
 ENV TERM xterm
 ARG NODE_VERSION=16.16.0
-ARG NODE_PACKAGE=node-v$NODE_VERSION-linux-x64
+ARG NODE_PACKAGE=node-v$NODE_VERSION-linux-${ARCH}
 ARG NODE_HOME=/opt/$NODE_PACKAGE
 ENV NODE_PATH $NODE_HOME/lib/node_modules
 ENV PATH $NODE_HOME/bin:$PATH

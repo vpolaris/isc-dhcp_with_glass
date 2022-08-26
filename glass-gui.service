@@ -1,6 +1,6 @@
 #!/bin/bash
 function start() {
-  exec npm start --prefix /opt/glass-isc-dhcp/
+  exec npm start --prefix /opt/glass-isc-dhcp/ &
 }
 
 function stop() {
