@@ -1,4 +1,4 @@
-# Container for ISC-DHCP with at touch of GLASS
+# Container for ISC-DHCP with a touch of GLASS
 
 ## Goal
 This project aims to build a full ISC DHCP server with the Web User Interface nammed Glass who provide a convenient way to manage the DHCP server in a single container. The container support amd64 et arm64 architectures. The distribution used to create the container is [Fedora 36]
@@ -18,7 +18,7 @@ You can retreive the container on my [Docker HUB]. it's built by a Github Action
 ## [ISC-DHCP]
 
 DHCP Server is chrooted in one single directory : /isc-dhcp providing configuration, PID log device and output file for Rsyslog
-For more infromation see the my helper container used in the dockerfile : [Container for ISC-DHCP]:
+For more infromation see my helper container used in the dockerfile : [Container for ISC-DHCP]
 
 # [Glass] Features
 - Manage DHCP configuration with Snapshot each time we modify the dhcpd.conf (backup)
@@ -58,6 +58,35 @@ sudo podman run --name glass --net host -d \
 --restart on-failure \
 -t f36:glass
 ```
+
+## Networking
+
+Expose required port if you don't use the host network (--net host)
+| Service  | Port | Protocol |
+|:--------:|------|----------|
+| DHCP     | 67   | UDP      |
+| HTTP     | 3000 | TCP      |
+
+### Firewall rules
+
+For DHCP.
+
+Not so restrictive rule that can be applied easyly.
+
+``` sh
+iptables -I INPUT -i $IFACE -p udp --dport 67:68 --sport  67:68 -j ACCEPT
+```
+
+Where $IFACE is the network adapter listenning the DHCP server
+
+For more details see .
+https://ixnfo.com/en/iptables-rules-for-dhcp.html
+
+For Glass access
+
+You can have a look to the Github owner of Glass.
+
+https://github.com/Akkadius/glass-isc-dhcp#iptables-recommended
 
 
 ![image](https://user-images.githubusercontent.com/73080749/186994264-f84701c9-044b-47e2-81ad-4729d38942e0.png)
