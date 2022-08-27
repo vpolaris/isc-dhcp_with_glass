@@ -1,11 +1,12 @@
 #How to set ARCH variable for mutli-arch building
 #https://medium.com/@tonistiigi/advanced-multi-stage-build-patterns-6f741b852fae
 ARG ARCH
+ARG sysroot=/mnt/sysroot
 FROM vpolaris/rsyslog:8.2204.0-2.fc36 as rsyslog
 FROM vpolaris/isc-dhcpd:4.4.3-2.fc36 as isc-dhcp
 FROM fedora:36 as builder
+ARG sysroot
 ARG DISTVERSION=36
-ARG sysroot=/mnt/sysroot
 ARG DNFOPTION="--setopt=install_weak_deps=False --nodocs"
 
 #install system
@@ -33,6 +34,7 @@ FROM builder as builder-amd64
 ARG ARCH=x64
 
 FROM builder-${TARGETARCH} as glass
+ARG sysroot
 #install nodejs
 ARG NODE_VERSION=16.16.0
 ARG NODE_PACKAGE=node-v$NODE_VERSION-linux-${ARCH}
@@ -87,7 +89,7 @@ RUN dnf -y --installroot=${sysroot} ${DNFOPTION} --releasever ${DISTVERSION}  au
     && rm -rf ${sysroot}/var/cache/dnf/ \
     && mkdir -p --mode=0755 ${sysroot}/var/cache/dnf/ \
     && rm -f ${sysroot}//var/lib/dnf/history.* \
-    && rm -f ${sysroot}//usr/lib/sysimage/rpm/*
+    && rm -f ${sysroot}//usr/lib/sysimage/rpm/* \
 #  sln
     && rm -rf ${sysroot}/sbin/sln \
 #  ldconfig
@@ -96,7 +98,7 @@ RUN dnf -y --installroot=${sysroot} ${DNFOPTION} --releasever ${DISTVERSION}  au
 
 
 FROM scratch 
-ARG sysroot=/mnt/sysroot
+ARG sysroot
 COPY --from=glass "${sysroot}" /
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
