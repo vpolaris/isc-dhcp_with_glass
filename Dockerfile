@@ -1,3 +1,5 @@
+#How to set ARCH variable for mutli-arch building
+#https://medium.com/@tonistiigi/advanced-multi-stage-build-patterns-6f741b852fae
 ARG ARCH
 FROM vpolaris/rsyslog:8.2204.0-2.fc36 as rsyslog
 FROM vpolaris/isc-dhcpd:4.4.3-2.fc36 as isc-dhcp
@@ -76,21 +78,21 @@ RUN dnf -y --installroot=${sysroot} ${DNFOPTION} --releasever ${DISTVERSION}  au
 #  docs and man pages       
     && rm -rf ${sysroot}/usr/share/{man,doc,info,gnome/help} \
 #  purge log files
-    && rm -f ${sysroot}/var/log/* \
+    && rm -f ${sysroot}/var/log/*|| exit 0 \
 #  cracklib
     && rm -rf ${sysroot}/usr/share/cracklib \
 #  i18n
     && rm -rf ${sysroot}/usr/share/i18n \
-#  dnf cache and history
+#  packaging
     && rm -rf ${sysroot}/var/cache/dnf/ \
     && mkdir -p --mode=0755 ${sysroot}/var/cache/dnf/ \
     && rm -f ${sysroot}//var/lib/dnf/history.* \
+    && rm -f ${sysroot}//usr/lib/sysimage/rpm/*
 #  sln
     && rm -rf ${sysroot}/sbin/sln \
 #  ldconfig
     && rm -rf ${sysroot}/etc/ld.so.cache ${sysroot}/var/cache/ldconfig \
     && mkdir -p --mode=0755 ${sysroot}/var/cache/ldconfig
-
 
 
 FROM scratch 
@@ -114,5 +116,6 @@ ENV NODE_PATH $NODE_HOME/lib/node_modules
 ENV PATH $NODE_HOME/bin:$PATH
 ENV IPOPT=-4
 HEALTHCHECK CMD dhcpd-pools -c /isc-dhcpd/etc/dhcpd.conf -l /isc-dhcpd/leasing/dhcpd.leases || exit 1
+EXPOSE 67/udp
 ENTRYPOINT ["./tini", "--", "/bin/entrypoint.sh"]
 CMD ["start"]
